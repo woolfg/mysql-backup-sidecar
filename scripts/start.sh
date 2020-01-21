@@ -1,11 +1,11 @@
 #!/bin/bash
 
-CRON_PATTERN={$CRON_PATTERN:-"0 0 * * *"}
+CRON_PATTERN=${CRON_PATTERN:-"0 0 * * *"}
 
-rm -rf /var/spool/cron/crontabs && mkdir -m 0644 -p /var/spool/cron/crontabs
+CRON_FILE=/etc/crontab
 
-echo -e "${CRON_PATTERN} /scripts/backup.sh\n" > /var/spool/cron/crontabs/CRON_STRINGS
+echo -e "${CRON_PATTERN} root /scripts/backup.sh\n" > ${CRON_FILE}
 
-chmod -R 0644 /var/spool/cron/crontabs
+echo "starting cron to execute xtrabackup periodically (${CRON_PATTERN})"
 
-crond -s /var/spool/cron/crontabs
+cron -f

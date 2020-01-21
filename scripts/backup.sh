@@ -9,6 +9,8 @@ incremental_date_pattern=${INCREMENTAL_DATE_PATTERN:-"%Y%m%d_baseweek_%W"}
 incremental_dir="${target_dir}/$(date +${incremental_date_pattern})"
 db_user=${MYSQL_USER:-"root"}
 db_password="${MYSQL_PASSWORD}"
+db_host=${MYSQL_HOST:-"db"}
+db_port=${MYSQL_PORT:-3306}
 debug=${DEBUG:-false}
 xtrabackup=xtrabackup
 log_prefix='date +%FT%T%z'
@@ -20,11 +22,11 @@ if [ "${MYSQL_PASSWORD_FILE}" ]; then
 fi
 
 if [ ! -d "${full_dir}" ]; then
-    OPT="--target-dir='${full_dir}'"
+    OPT="--target-dir=${full_dir}"
     printf " full backup"
 elif [ ${incremental} ]; then
-    OPT="--incremental-basedir='${full_dir}' \
-        --target-dir='${incremental_dir}'"
+    OPT="--incremental-basedir=${full_dir} \
+        --target-dir=${incremental_dir}"
     printf " incremental backup"
 fi
 
@@ -34,8 +36,10 @@ if [ ${compress_threads} -gt 0 ]; then
 fi
 
 command="${xtrabackup} --backup \
-     --user='${db_user}' \
-     --password='${db_password}' \
+     --user=${db_user} \
+     --password=${db_password} \
+     --host=${db_host} \
+     --port=${db_port} \
      ${OPT}";
 
 if [ "${DEBUG}" ]; then echo "$(${log_prefix}) DEBUG: $command"; fi

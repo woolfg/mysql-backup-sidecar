@@ -17,6 +17,7 @@ services:
     volumes:
       - mysqldata:/var/lib/mysql
       - backup:/backup
+      - ../scripts:/scripts
     environment:
       CRON_PATTERN: "05 05 * * *"
       INCREMENTAL: "true"
@@ -24,6 +25,7 @@ services:
       TARGET_DIR: /backup
       FULL_DATE_PATTERN: "%Y_week%W"
       INCREMENTAL_DATE_PATTERN: "%Y%m%d_baseweek_%W"
+      MYSQL_HOST: db
       MYSQL_USER: root
       MYSQL_PASSWORD_FILE: /run/secrets/db_password
       DEBUG: "true"
