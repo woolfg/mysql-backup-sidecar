@@ -18,15 +18,15 @@ services:
       - mysqldata:/var/lib/mysql
       - backup:/backup
     environment:
-      CRON_PATTERN: "05 05 * * *"
+      CRON_SCHEDULE: "05 05 * * *"
       INCREMENTAL: "true"
       COMPRESS_THREADS: 1
-      TARGET_DIR: /backup
-      FULL_DATE_PATTERN: "%Y_week%W"
-      INCREMENTAL_DATE_PATTERN: "%Y%m%d_baseweek_%W"
+      BACKUP_DIR: /backup
+      DIR_DATE_PATTERN: "%Y%m%d"
+      FULL_BACKUP_DATE_FORMAT: "%a"
+      FULL_BACKUP_DATE_RESULT: "Sun"
       MYSQL_USER: root
       MYSQL_PASSWORD_FILE: /run/secrets/db_password
-      DEBUG: "true"
     secrets:
       - db_password
 

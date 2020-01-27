@@ -1,42 +1,7 @@
 version: "3.7"
-services:
-  db:
-    image: mysql:8
-    volumes:
-      - mysqldata:/var/lib/mysql
-    environment:
-      MYSQL_DATABASE: mydb
-      MYSQL_USER: myuser
-      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_password
-      MYSQL_PASSWORD_FILE: /run/secrets/db_password
-    secrets:
-      - db_password      
-      
+services: 
   backup:
-    image: woolfg/mysql-backup-sidecar:${VERSION_TAG}
+    build: ../
     volumes:
-      - mysqldata:/var/lib/mysql
-      - backup:/backup
       - ../scripts:/scripts
-    environment:
-      CRON_PATTERN: "05 05 * * *"
-      INCREMENTAL: "true"
-      COMPRESS_THREADS: 1
-      TARGET_DIR: /backup
-      FULL_DATE_PATTERN: "%Y_week%W"
-      INCREMENTAL_DATE_PATTERN: "%Y%m%d_baseweek_%W"
-      MYSQL_HOST: db
-      MYSQL_USER: root
-      MYSQL_PASSWORD_FILE: /run/secrets/db_password
-      DEBUG: "true"
-    secrets:
-      - db_password
-
-volumes:
-  mysqldata:
-  backup:
-    
-secrets:
-  db_password:
-    file: db_secret
     

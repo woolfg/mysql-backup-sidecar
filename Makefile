@@ -4,7 +4,7 @@ VERSION_TAG := $(shell git describe HEAD)
 IMAGE_NAME := woolfg/mysql-backup-sidecar
 PROJECT := mysql-backup-sidecar
 
-DOCKER_COMPOSE_DEV := docker-compose -p $(PROJECT) -f examples/docker-compose.dev.yml
+DOCKER_COMPOSE_DEV := docker-compose -p $(PROJECT) -f examples/docker-compose.yml -f examples/docker-compose.dev.yml
  
 
 export
