@@ -4,4 +4,5 @@ services:
     build: ../
     volumes:
       - ../scripts:/scripts
+      - ../tests:/tests
     

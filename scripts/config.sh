@@ -13,17 +13,17 @@ db_password="${MYSQL_PASSWORD}"
 db_host=${MYSQL_HOST:-"db"}
 db_port=${MYSQL_PORT:-3306}
 
-rotation1_days=${ROTATION1_DAYS:-30}
-rotation1_date_format=${ROTATION1_DATE_FORMAT:-"%d"}
-rotation1_date_result=${ROTATION1_DATE_RESULT:-"01"}
+rotation1_days=${ROTATION1_DAYS:-6}
+rotation1_date_format=${ROTATION1_DATE_FORMAT:-"%a"}
+rotation1_date_result=${ROTATION1_DATE_RESULT:-"Sun"}
 
-rotation2_days=${ROTATION2_DAYS:-365}
-rotation2_date_format=${ROTATION2_DATE_FORMAT:-"%m"}
-rotation2_date_result=${ROTATION2_DATE_RESULT:-"01"}
+rotation2_days=${ROTATION2_DAYS:-30}
+rotation2_date_format=${ROTATION2_DATE_FORMAT:-"%d"}
+rotation2_date_result=${ROTATION2_DATE_RESULT:-"<8"}
 
-rotation3_days=${ROTATION3_DAYS:-""}
-rotation3_date_format=${ROTATION3_DATE_FORMAT:-""}
-rotation3_date_result=${ROTATION3_DATE_RESULT:-""}
+rotation3_days=${ROTATION3_DAYS:-365}
+rotation3_date_format=${ROTATION3_DATE_FORMAT:-"%m"}
+rotation3_date_result=${ROTATION3_DATE_RESULT:-"01"}
 
 log_prefix='date +%FT%T%z'
 xtrabackup=xtrabackup

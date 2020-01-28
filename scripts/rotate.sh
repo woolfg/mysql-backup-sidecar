@@ -51,9 +51,23 @@ rotation () {
     date_check_format="$2"
     date_check_result="$3"
 
-    echo "$(${log_prefix}) INFO: checking rotation pattern > ${days} days with date pattern ${date_check_format} = ${date_check_result}"
+    case "${date_check_result:0:1}" in
+        ">")
+            comparison="-gt";
+            date_check_result=$(echo "${date_check_result}" | tail -c +2)
+            ;;
+        "<")
+            comparison="-lt";
+            date_check_result=$(echo "${date_check_result}" | tail -c +2)
+            ;;
+        *)
+            comparison="=";
+            ;;
+    esac
 
-    for dir in $(find ./ -maxdepth 1 -mindepth 1 -type d -mtime +${days});
+    echo "$(${log_prefix}) INFO: checking rotation pattern > ${days} days with date pattern ${date_check_format} ${comparison} ${date_check_result}"
+
+    for dir in $(find ${archive_dir} -maxdepth 1 -mindepth 1 -type d -mtime +${days});
     do
         dirname=$(basename $dir);
         mtime=$(stat -c %y $dir);
@@ -62,9 +76,9 @@ rotation () {
         # check if mtime of dir corresponds to the directory name, otherwise ignore the folder
         if [ "${dirname}" = "${expected_dirname}" ]; then
             # if given pattern doesn't match, consider it is old and no longer needed -> delete
-            if [ ! "$(date +${date_check_format} -d "${mtime}")" = "${date_check_result}" ]; then
+            if [ ! "$(date +${date_check_format} -d "${mtime}")" ${comparison} "${date_check_result}" ]; then
                 echo "$(${log_prefix}) INFO: ${dir} will be deleted, as it is no longer needed"
-                #rm -rf "${dir}"
+                rm -rf "${dir}"
             fi
         else 
             >&2 echo "$(${log_prefix}) ERROR: mtime ${mtime} of ${dirname} doesn't match with expected filename ${expected_dirname} -> won't be touched."
