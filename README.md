@@ -15,15 +15,24 @@ This backup docker container creates incremental and compressed MySQL or MariaDB
 
 The following environment variables are supported (incl. example values):
 
-- `CRON_SCHEDULE: "05 05 * * *"`
-- `INCREMENTAL: "true"`
-- `COMPRESS_THREADS: 1`
-- `TARGET_DIR: /backup`
-- `FULL_DATE_PATTERN: "%Y_week%W"`
-- `INCREMENTAL_DATE_PATTERN: "%Y%m%d_baseweek_%W"`
-- `MYSQL_USER: root`
-- `MYSQL_PASSWORD_FILE: /run/secrets/db_password`
-- `DEBUG: "true"`
+- `CRON_SCHEDULE:` "5 3 * * *"
+- `INCREMENTAL:` "true"
+- `COMPRESS_THREADS:` 1
+- `BACKUP_DIR:` /backup
+- `DIR_DATE_PATTERN:` "%Y%m%d"
+- `FULL_BACKUP_DATE_FORMAT:` "%a"
+- `FULL_BACKUP_DATE_RESULT:` "Sun"
+- `ROTATION1_DAYS:` 6
+- `ROTATION1_DATE_FORMAT:` "%a"
+- `ROTATION1_DATE_RESULT:` "Sun"
+- `ROTATION2_DAYS:` 30
+- `ROTATION2_DATE_FORMAT:` "%d"
+- `ROTATION2_DATE_RESULT:` "<8"
+- `ROTATION3_DAYS:` 365
+- `ROTATION3_DATE_FORMAT:` "%m"
+- `ROTATION3_DATE_RESULT:` "01"
+- `MYSQL_USER:` root
+- `MYSQL_PASSWORD_FILE:` /run/secrets/db_password
 
 ## Upload Backup Data
 

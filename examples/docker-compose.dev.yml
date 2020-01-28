@@ -2,6 +2,8 @@ version: "3.7"
 services: 
   backup:
     build: ../
+    environment:
+      CRON_SCHEDULE: "* * * * *"
     volumes:
       - ../scripts:/scripts
       - ../tests:/tests

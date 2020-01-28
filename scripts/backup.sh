@@ -3,11 +3,7 @@
 source $(dirname "$0")/config.sh
 source $(dirname "$0")/functions.sh
 
-echo "$(${log_prefix}) INFO: checking for a backup";
-
-if [ "${MYSQL_PASSWORD_FILE}" ]; then
-    db_password="$(< "${MYSQL_PASSWORD_FILE}")"
-fi
+echo "$(${log_prefix}) INFO: *********** starting backup";
 
 current_dir="${target_dir}/$(date +${dir_date_pattern})"
 run_incremental=false

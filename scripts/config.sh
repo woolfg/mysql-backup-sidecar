@@ -13,6 +13,10 @@ db_password="${MYSQL_PASSWORD}"
 db_host=${MYSQL_HOST:-"db"}
 db_port=${MYSQL_PORT:-3306}
 
+if [ ! -z "${MYSQL_PASSWORD_FILE}" ]; then
+    db_password="$(< "${MYSQL_PASSWORD_FILE}")"
+fi
+
 rotation1_days=${ROTATION1_DAYS:-6}
 rotation1_date_format=${ROTATION1_DATE_FORMAT:-"%a"}
 rotation1_date_result=${ROTATION1_DATE_RESULT:-"Sun"}

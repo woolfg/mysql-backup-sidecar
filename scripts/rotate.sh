@@ -3,7 +3,7 @@
 source $(dirname "$0")/config.sh
 source $(dirname "$0")/functions.sh
 
-echo "$(${log_prefix}) INFO: starting rotation";
+echo "$(${log_prefix}) INFO: *********** starting rotation";
 
 full_backups=$(full_backups)
 inc_backups=$(inc_backups)
@@ -27,7 +27,7 @@ do
     current_dir=$(dirname ${fulldir})
     if [ "${current_lsn}" -lt "${newest_lsn}" ]; then
         echo "$(${log_prefix}) INFO: ${current_dir} with lsn ${current_lsn} is older, will be moved"
-        #mv "${current_dir}" "${archive_dir}"
+        mv "${current_dir}" "${archive_dir}"
     fi
 done;
 
@@ -40,7 +40,7 @@ do
     current_dir=$(dirname ${incdir})
     if [ "${current_lsn}" -lt "${newest_lsn}" ]; then
         echo "$(${log_prefix}) INFO: ${current_dir} (incremental backup) with lsn ${current_lsn} is older, will be deleted"
-        #rf -rf "${current_dir}"
+        rm -rf "${current_dir}"
     fi
 done;
 
