@@ -17,6 +17,10 @@ help: ## help message, list all command
 build: ## build docker image
 	docker build -t $(IMAGE_NAME):$(VERSION_TAG) .
 
+.PHONY: rebuild
+rebuild: ## build docker image without cache
+	docker build --no-cache -t $(IMAGE_NAME):$(VERSION_TAG) .
+
 .PHONY: cronrun
 cronrun: ## run container starting the pattern every minute
 	docker run -e CRON_PATTERN="* * * * *" $(IMAGE_NAME):$(VERSION_TAG)
