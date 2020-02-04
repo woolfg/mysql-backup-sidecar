@@ -30,7 +30,7 @@ rotation3_date_format=${ROTATION3_DATE_FORMAT:-"%m"}
 rotation3_date_result=${ROTATION3_DATE_RESULT:-"01"}
 
 log_prefix='date +%FT%T%z'
-xtrabackup=xtrabackup
+xtrabackup=$(which xtrabackup mariabackup)
 
 target_dir="${backup_dir}/current"
 archive_dir="${backup_dir}/archive"

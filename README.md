@@ -1,10 +1,10 @@
 # mysql-backup-sidecar
 
-This backup docker container creates incremental and compressed MySQL or MariaDB (InnoDB) backups without blocking the database during the backup procedure. It is based on XtraBackup https://www.percona.com/doc/percona-xtrabackup/2.4/index.html
+This backup docker container creates incremental and compressed MySQL or MariaDB backups without blocking the database during the backup procedure. It is based on `XtraBackup` https://www.percona.com/doc/percona-xtrabackup/2.4/index.html and the forked version for MariaDB `Mariabackup` https://mariadb.com/kb/en/mariabackup/S.
 
 ## Features
 
-- non blocking backup procedure of InnoDB based databases (XtraBackup)
+- non blocking backup procedure (XtraBackup = Mariabackup)
 - runs in a separated container
 - configurable cron schedule (e.g. every night, every second night, etc)
 - configurable backup cycles (incremental, full backups)
@@ -33,6 +33,8 @@ The following environment variables are supported (incl. example values):
 - `ROTATION3_DATE_RESULT:` "01"
 - `MYSQL_USER:` root
 - `MYSQL_PASSWORD_FILE:` /run/secrets/db_password
+- `MYSQL_HOST:` db
+
 
 ## Upload Backup Data
 

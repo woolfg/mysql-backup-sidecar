@@ -11,7 +11,7 @@ echo -e "${CRON_SCHEDULE} root \
 
 printenv | cat - ${CRON_FILE} > /tmp/cron
 cat /tmp/cron > ${CRON_FILE}
-chmod 0644 touch ${CRON_FILE}
+chmod 0644 ${CRON_FILE}
 
 echo "starting cron to execute xtrabackup periodically (${CRON_SCHEDULE})"
 
