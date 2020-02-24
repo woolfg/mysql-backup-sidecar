@@ -49,8 +49,6 @@ command="${xtrabackup} --backup \
      --port=${db_port} \
      ${OPT}";
 
-echo "$(${log_prefix}) INFO: executing $command";
-
 $command
 
 echo "$(${log_prefix}) INFO: backup process finished";
