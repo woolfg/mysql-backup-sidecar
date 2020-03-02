@@ -35,6 +35,9 @@ The following environment variables are supported (incl. example values):
 - `MYSQL_PASSWORD_FILE:` /run/secrets/db_password
 - `MYSQL_HOST:` db
 
+## More Information
+
+Find a blog article about the project at https://wolfgang.gassler.org/docker-image-mysql-mariadb-backups/
 
 ## Upload Backup Data
 
