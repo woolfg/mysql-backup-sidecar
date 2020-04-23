@@ -47,8 +47,22 @@ command="${xtrabackup} --backup \
      --password=${db_password} \
      --host=${db_host} \
      --port=${db_port} \
-     ${OPT}";
+     ${OPT}"
 
-$command
+tmp_output=$(mktemp)
+eval ${command} 2>&1 | tee ${tmp_output}
 
-echo "$(${log_prefix}) INFO: backup process finished";
+if [ ! -z "${after_backup_script}" ]; then
+    echo "called after backup script"
+    output=$(cat ${tmp_output})
+    if [[ ${output} =~ "completed OK!" ]]
+    then
+        status="succeed"
+    else
+        status="failed"
+    fi
+    ${after_backup_script} ${status} "${output}"
+fi
+rm ${tmp_output}
+
+echo "$(${log_prefix}) INFO: backup process finished"
