@@ -8,6 +8,7 @@ dir_date_pattern=${DIR_DATE_PATTERN:-"%Y%m%d"}
 full_backup_date_format=${FULL_BACKUP_DATE_FORMAT:-"%a"}
 full_backup_date_result=${FULL_BACKUP_DATE_RESULT:-"Sun"}
 
+after_backup_script=${AFTER_BACKUP_SCRIPT}
 databases_exclude="${DATABASES_EXCLUDE}"
 
 db_user=${MYSQL_USER:-"root"}

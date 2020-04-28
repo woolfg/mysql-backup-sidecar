@@ -22,6 +22,7 @@ The following environment variables are supported (incl. example values):
 - `DIR_DATE_PATTERN:` "%Y%m%d"
 - `FULL_BACKUP_DATE_FORMAT:` "%a"
 - `FULL_BACKUP_DATE_RESULT:` "Sun"
+- `AFTER_BACKUP_SCRIPT:` "/backup/after_script.sh"
 - `DATABASES_EXCLUDE:` "example example1.table1"
 - `ROTATION1_DAYS:` 6
 - `ROTATION1_DATE_FORMAT:` "%a"
