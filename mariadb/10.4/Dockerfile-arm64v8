@@ -1,6 +1,6 @@
 FROM arm64v8/mariadb:10.4
 
-LABEL maintainer="Guillaume Lamirand"
+LABEL maintainer="Wolfgang Gassler, Guillaume Lamirand"
 LABEL description="Mariabackup based backup docker image to create incremental backups periodically of MariaDB"
 
 RUN apt-get update \

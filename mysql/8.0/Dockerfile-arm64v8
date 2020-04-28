@@ -1,6 +1,6 @@
 FROM arm64v8/debian:10-slim
 
-LABEL maintainer="Guillaume Lamirand"
+LABEL maintainer="Wolfgang Gassler, Guillaume Lamirand"
 LABEL description="XtraBackup based MySQL / MariaDB backup docker image to create incremental backups periodically"
 
 # installing xtrabackup according to https://www.percona.com/doc/percona-xtrabackup/8.0/installation/apt_repo.html
