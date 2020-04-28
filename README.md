@@ -47,6 +47,9 @@ If you want to upload your backups to an external storage we recommend the very 
 
 ## Credits
 
+Contributors:
+- [Guillaume L. (guillaumelamirand)](https://github.com/guillaumelamirand)
+
 Thanks to the following resources which helped and inspired:
 
 - https://www.percona.com/doc/percona-xtrabackup/2.4/index.html
