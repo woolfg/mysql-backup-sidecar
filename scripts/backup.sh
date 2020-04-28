@@ -42,13 +42,18 @@ if [ ${compress_threads} -gt 0 ]; then
     echo " with compression enabled"
 fi
 
+if [ ! -z "${databases_exclude}" ]; then
+    OPT="--databases-exclude=\"${databases_exclude}\" ${OPT}"
+    echo " with databases exclude"
+fi
+
 command="${xtrabackup} --backup \
      --user=${db_user} \
-     --password=${db_password} \
+     --password=\"${db_password}\" \
      --host=${db_host} \
      --port=${db_port} \
      ${OPT}";
 
-$command
+eval $command
 
 echo "$(${log_prefix}) INFO: backup process finished";
