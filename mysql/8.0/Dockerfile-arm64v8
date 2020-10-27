@@ -7,7 +7,7 @@ LABEL description="XtraBackup based MySQL / MariaDB backup docker image to creat
 
 RUN . /etc/os-release \
     && apt-get update \
-    && apt-get -y install wget lsb-release gnupg2 cron \
+    && apt-get -y install wget lsb-release gnupg2 cron curl \
     && rm -rf /etc/cron.* \
     && . /etc/os-release \
     && wget https://repo.percona.com/apt/percona-release_latest.${VERSION_CODENAME}_all.deb \
