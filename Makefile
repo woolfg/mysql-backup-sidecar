@@ -21,8 +21,15 @@ build: ## build docker image
 	docker build -t $(IMAGE_NAME):$(VERSION_TAG_MYSQL) -f mysql/8.0/Dockerfile .
 
 .PHONY: rebuild
-rebuild: ## build docker image without cache
-	docker build --no-cache -t $(IMAGE_NAME):$(VERSION_TAG) .
+rebuild: rebuild-mysql rebuild-mariadb ## build docker image without cache
+
+.PHONY: rebuild-mysql
+rebuild-mysql: ## build docker image without cache
+	docker build --no-cache -t $(IMAGE_NAME):$(VERSION_TAG_MYSQL) -f mysql/8.0/Dockerfile .	
+
+.PHONY: rebuild-mariadb
+rebuild-mariadb: ## build docker image without cache
+	docker build --no-cache -t $(IMAGE_NAME):$(VERSION_TAG_MARIADB) -f mariadb/10.4/Dockerfile .
 
 .PHONY: runmysql
 runmysql: ## run the example docker compose stack on MySQL
