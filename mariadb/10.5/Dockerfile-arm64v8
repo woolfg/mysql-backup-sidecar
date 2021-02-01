@@ -1,0 +1,16 @@
+FROM arm64v8/mariadb:10.5
+
+LABEL maintainer="Wolfgang Gassler, Guillaume Lamirand"
+LABEL description="Mariabackup based backup docker image to create incremental backups periodically of MariaDB"
+
+RUN apt-get update \
+    && apt-get -y install cron \
+    && rm -rf /etc/cron.* 
+
+COPY scripts /scripts
+
+VOLUME /backup /var/lib/mysql
+WORKDIR /backup
+
+ENTRYPOINT []
+CMD ["/scripts/start.sh"]
