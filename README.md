@@ -50,6 +50,7 @@ If you want to upload your backups to an external storage we recommend the very 
 
 Contributors:
 - [Guillaume L. (guillaumelamirand)](https://github.com/guillaumelamirand)
+- [anton z (luzrain)](https://github.com/luzrain)
 
 Thanks to the following resources which helped and inspired:
 
