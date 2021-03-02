@@ -48,7 +48,8 @@ Find a blog article about the project at https://wolfgang.gassler.org/docker-ima
 
 ## Upload Backup Data
 
-If you want to upload your backups to an external storage we recommend the very flexible docker container https://github.com/lagun4ik/docker-backup
+- If you want to upload your backups to an external storage we recommend the very flexible docker container https://github.com/lagun4ik/docker-backup
+- For uploading backups to Google Cloud Storage automatically, you can use my sister project [woolfg/mysql-backup-sidecar-gs](https://github.com/woolfg/mysql-backup-sidecar-gs).
 
 ## Credits
 
