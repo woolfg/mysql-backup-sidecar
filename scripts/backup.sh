@@ -59,7 +59,7 @@ eval ${command} 2>&1 | tee ${tmp_output}
 
 
 if [ ! -z "${after_backup_script}" ]; then
-    echo "called after backup script"
+    "$(${log_prefix}) INFO: call after backup script"
     output=$(cat ${tmp_output})
     if [[ ${output} =~ "completed OK!" ]]
     then
@@ -67,7 +67,7 @@ if [ ! -z "${after_backup_script}" ]; then
     else
         status="failed"
     fi
-    ${after_backup_script} ${status} "${output}"
+    ${after_backup_script} ${status} "${output}" "${current_dir}" 
 fi
 rm ${tmp_output}
 

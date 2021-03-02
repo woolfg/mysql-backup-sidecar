@@ -38,6 +38,10 @@ The following environment variables are supported (incl. example values):
 - `MYSQL_HOST:` db
 - `AFTER_BACKUP_SCRIPT:` /backup/after_script.sh
 
+## Example configuration
+
+You can find an example configuration in the `examples` folder. The available docker image versions can be found on [docker hub](https://hub.docker.com/r/woolfg/mysql-backup-sidecar/tags)
+
 ## More Information
 
 Find a blog article about the project at https://wolfgang.gassler.org/docker-image-mysql-mariadb-backups/

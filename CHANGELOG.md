@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - Add `curl` as basic tool for "after-scripts" in MariaDB images
+- Add backup directory as an argument for the after backup script.
 
 ## [0.3.2] - 2021-02-01
 
