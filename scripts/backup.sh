@@ -62,7 +62,6 @@ command="${xtrabackup} --backup \
 tmp_output=$(mktemp)
 eval ${command} 2>&1 | tee ${tmp_output}
 
-
 if [ ! -z "${after_backup_script}" ]; then
     echo "$(${log_prefix}) INFO: call after backup script"
     output=$(cat ${tmp_output})

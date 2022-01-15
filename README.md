@@ -37,7 +37,6 @@ The following environment variables are supported (incl. example values):
 - `MYSQL_USER:` root
 - `MYSQL_PASSWORD_FILE:` /run/secrets/db_password
 - `MYSQL_HOST:` db
-- `AFTER_BACKUP_SCRIPT:` /backup/after_script.sh
 
 ## Example configuration
 
