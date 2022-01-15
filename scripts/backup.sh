@@ -8,6 +8,11 @@ echo "$(${log_prefix}) INFO: *********** starting backup";
 current_dir="${target_dir}/$(date +${dir_date_pattern})"
 run_incremental=false
 
+if [ ! -z "${before_backup_script}" ]; then
+    echo "$(${log_prefix}) INFO: call before backup script"
+    ${before_backup_script} "${current_dir}"
+fi
+
 if [ "${incremental}" = true ]; then
     #check if a full backup has to be done again
     if [ "$(date +${full_backup_date_format})" = "${full_backup_date_result}" ]; then
