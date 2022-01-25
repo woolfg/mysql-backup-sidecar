@@ -22,6 +22,7 @@ The following environment variables are supported (incl. example values):
 - `DIR_DATE_PATTERN:` "%Y%m%d"
 - `FULL_BACKUP_DATE_FORMAT:` "%a"
 - `FULL_BACKUP_DATE_RESULT:` "Sun"
+- `BEFORE_BACKUP_SCRIPT:` "/backup/before_script.sh"
 - `AFTER_BACKUP_SCRIPT:` "/backup/after_script.sh"
 - `DATABASES_EXCLUDE:` "example example1.table1"
 - `ROTATION1_DAYS:` 6
@@ -36,7 +37,6 @@ The following environment variables are supported (incl. example values):
 - `MYSQL_USER:` root
 - `MYSQL_PASSWORD_FILE:` /run/secrets/db_password
 - `MYSQL_HOST:` db
-- `AFTER_BACKUP_SCRIPT:` /backup/after_script.sh
 
 ## Example configuration
 
@@ -50,6 +50,12 @@ Find a blog article about the project at https://wolfgang.gassler.org/docker-ima
 
 - If you want to upload your backups to an external storage we recommend the very flexible docker container https://github.com/lagun4ik/docker-backup
 - For uploading backups to Google Cloud Storage automatically, you can use my sister project [woolfg/mysql-backup-sidecar-gs](https://github.com/woolfg/mysql-backup-sidecar-gs).
+
+## After and Before scripts
+
+You can run scripts right before and after backup routines. Just pass `BEFORE_BACKUP_SCRIPT` and/or `AFTER_BACKUP_SCRIPT` environment variables with the files locations.
+
+The before script receives as only one argument the backup's target directory while the after script receives three: the status `succeed` or `failed`, the raw output and the backup's target directory.
 
 ## Credits
 
