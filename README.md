@@ -46,6 +46,16 @@ You can find an example configuration in the `examples` folder. The available do
 
 Find a blog article about the project at https://wolfgang.gassler.org/docker-image-mysql-mariadb-backups/
 
+## Restore a backup
+
+Let's assume we have a valid backup in your sidecar container and we want to restore it. Please, think about the commands and their impact. Do not just copy/paste it and adapt it to your needs.
+
+- Make sure that the main MySQL/MariaDB container is stopped and won't get restarted automatically by any restart policy.
+- Login to the sidecar and make sure, that the `data` dir of MySQL is empty by e.g. executing `rm -rf /var/lib/mysql/*`
+- Choose the backup you want to restore, e.g. `/backup/archive/20210606`
+- If you deal with compressed data, you will have to uncompress it first. `xtrabackup --decompress --target-dir=/backup/archive/20210606` does the job. You might need to install the required compression tool `qpress` first by executing `apt-get install qpress`.
+- The restoration process itself is just a copy process of the data in the backup directory to the empty data dir of MySQL. In the sidecar, as you have direct access to the shared volume, you can just copy the data `cp -r /backup/archive/20210606/* /var/lib/mysql`. You might have to `chown` the data to the owner of `/var/lib/mysql`.
+
 ## Upload Backup Data
 
 - If you want to upload your backups to an external storage we recommend the very flexible docker container https://github.com/lagun4ik/docker-backup
