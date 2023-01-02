@@ -28,12 +28,14 @@ build-mariadb: ## build docker image
 	docker build -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-10.4" -f mariadb/10.4/Dockerfile .
 	docker build -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-10.5" -f mariadb/10.5/Dockerfile .
 	docker build -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-10.8" -f mariadb/10.8/Dockerfile .
+	docker build -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-10.9" -f mariadb/10.9/Dockerfile .
 
 .PHONY: rebuild-mariadb
 rebuild-mariadb: ## build docker image without cache
 	docker build --no-cache -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-10.4" -f mariadb/10.4/Dockerfile .
 	docker build --no-cache -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-10.5" -f mariadb/10.5/Dockerfile .
 	docker build --no-cache -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-10.8" -f mariadb/10.8/Dockerfile .
+	docker build --no-cache -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-10.9" -f mariadb/10.9/Dockerfile .
 
 .PHONY: runmysql
 runmysql: ## run the example docker compose stack on MySQL
