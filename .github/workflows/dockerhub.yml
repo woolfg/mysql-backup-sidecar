@@ -27,6 +27,14 @@ jobs:
     if: github.repository_owner == 'woolfg' &&
       github.actor != 'dependabot[bot]' &&
       ( github.event_name != 'pull_request' || github.event.pull_request.head.repo.owner.login == github.event.pull_request.base.repo.owner.login )
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dockerfile: ./mysql/8.0/Dockerfile
+            suffix: -mysql-8.0
+          - dockerfile: ./mariadb/10.9/Dockerfile
+            suffix: -mariadb-10.9
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -39,7 +47,7 @@ jobs:
           images: |
             ${{ env.IMAGE_NAME }}
           flavor: |
-            suffix=-mysql-8.0
+            suffix=${{ matrix.suffix }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=schedule
@@ -68,7 +76,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: ${{ env.DOCKERFILE }}
+          file: ${{ matrix.dockerfile }}
           platforms: ${{ env.DOCKER_PLATFORMS }}
           push: ${{ github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' }}
           tags: ${{ steps.meta.outputs.tags }}
