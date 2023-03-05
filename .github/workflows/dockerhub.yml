@@ -1,0 +1,35 @@
+name: DockerHub
+on:
+  repository_dispatch:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["release"]
+    types:
+      - completed
+  push:
+    branches:
+      - main
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches:
+      - main
+
+env:
+  IMAGE_NAME: woolfg/mysql-backup-sidecar
+  DOCKER_PLATFORMS: linux/amd64,linux/arm64/v8
+  DOCKERFILE: Dockerfile
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Don't run on forks
+    if: github.repository_owner == 'woolfg' &&
+      github.actor != 'dependabot[bot]' &&
+      ( github.event_name != 'pull_request' || github.event.pull_request.head.repo.owner.login == github.event.pull_request.base.repo.owner.login )
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Build
+        run: make build
