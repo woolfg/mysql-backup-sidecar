@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.5] - 2023-03-05
+
+- Added `before-script` option which allows to execute a custom script before each backup (thanks to @lightningspirit)
+- Smaller fixes
+- Rebuild contains new MySQL version (>8.0.27) which supports new default password schema
+
 ## [0.3.4] - 2021-03-04
 
 - Small logging bug fixed
