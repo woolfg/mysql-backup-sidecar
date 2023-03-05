@@ -35,6 +35,12 @@ jobs:
             suffix: -mysql-8.0
           - dockerfile: ./mariadb/10.9/Dockerfile
             suffix: -mariadb-10.9
+          - dockerfile: ./mariadb/10.8/Dockerfile
+            suffix: -mariadb-10.8
+          - dockerfile: ./mariadb/10.5/Dockerfile
+            suffix: -mariadb-10.5
+          - dockerfile: ./mariadb/10.4/Dockerfile
+            suffix: -mariadb-10.4
     steps:
       - name: Checkout
         uses: actions/checkout@v3
