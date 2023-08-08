@@ -13,6 +13,9 @@ if [ ! -z "${before_backup_script}" ]; then
     ${before_backup_script} "${current_dir}"
 fi
 
+# output version information of xtrabackup
+${xtrabackup} --version
+
 if [ "${incremental}" = true ]; then
     #check if a full backup has to be done again
     if [ "$(date +${full_backup_date_format})" = "${full_backup_date_result}" ]; then
