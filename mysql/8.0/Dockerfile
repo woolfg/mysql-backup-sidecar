@@ -15,7 +15,7 @@ RUN . /etc/os-release \
     && rm -f percona-release_latest.${VERSION_CODENAME}_all.deb \
     && percona-release enable-only tools release \
     && apt-get update \
-    && apt-get -y install percona-xtrabackup-80
+    && apt-get -y install percona-xtrabackup-80=8.0.33-28-1.buster
 
 COPY scripts /scripts
 
