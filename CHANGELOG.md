@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.6] - 2023-08-09
+
+- Trigger new build to support new MySQL 8 versions (8.0.33)
+- Output version of XtraBackup when running script
+
 ## [0.3.5] - 2023-03-05
 
 - Added `before-script` option which allows to execute a custom script before each backup (thanks to @lightningspirit)
