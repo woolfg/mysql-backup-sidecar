@@ -40,7 +40,7 @@ rebuild-mariadb: ## build docker image without cache
 .PHONY: runmysql
 runmysql: ## run the example docker compose stack on MySQL
 	VERSION_TAG=$(VERSION_TAG)-mysql-8.0 \
-	DB_IMAGE=mysql:8.0 \
+	DB_IMAGE=mysql:8.0.34 \
 	$(DOCKER_COMPOSE_DEV) up
 
 .PHONY: runmariadb
