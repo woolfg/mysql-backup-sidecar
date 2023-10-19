@@ -98,4 +98,14 @@ do
     fi
 done;
 
+# Delete backups older than x days
+if [ ${delete_older_days} -gt 0 ]; then
+    echo "$(${log_prefix}) INFO: deleting backups older than ${delete_older_days} days"
+    for dir in $(find ${archive_dir} -maxdepth 1 -mindepth 1 -type d -mtime +${delete_older_days});
+    do
+        echo "$(${log_prefix}) INFO: ${dir} will be deleted, as it is older than ${delete_older_days} days"
+        rm -rf "${dir}"
+    done;
+fi
+
 echo "$(${log_prefix}) INFO: rotation finished";

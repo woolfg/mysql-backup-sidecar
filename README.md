@@ -34,6 +34,7 @@ The following environment variables are supported (incl. example values):
 - `ROTATION3_DAYS:` 365
 - `ROTATION3_DATE_FORMAT:` "%m"
 - `ROTATION3_DATE_RESULT:` "01"
+- `DELETE_OLDER_DAYS:` 0
 - `MYSQL_USER:` root
 - `MYSQL_PASSWORD_FILE:` /run/secrets/db_password
 - `MYSQL_HOST:` db

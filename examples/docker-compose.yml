@@ -10,8 +10,8 @@ services:
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_password
       MYSQL_PASSWORD_FILE: /run/secrets/db_password
     secrets:
-      - db_password      
-      
+      - db_password
+
   backup:
     image: woolfg/mysql-backup-sidecar:${VERSION_TAG}
     volumes:
@@ -23,7 +23,7 @@ services:
       COMPRESS_THREADS: 1
       BACKUP_DIR: /backup
       DIR_DATE_PATTERN: "%Y%m%d"
-      
+
       FULL_BACKUP_DATE_FORMAT: "%a"
       FULL_BACKUP_DATE_RESULT: "Sun"
 
@@ -39,6 +39,8 @@ services:
       ROTATION3_DATE_FORMAT: "%m"
       ROTATION3_DATE_RESULT: "01"
 
+      DELETE_OLDER_DAYS: 600
+
       MYSQL_USER: root
       MYSQL_PASSWORD_FILE: /run/secrets/db_password
     secrets:
@@ -47,8 +49,7 @@ services:
 volumes:
   mysqldata:
   backup:
-    
+
 secrets:
   db_password:
     file: db_secret
-    

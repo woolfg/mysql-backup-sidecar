@@ -33,6 +33,9 @@ rotation3_days=${ROTATION3_DAYS:-365}
 rotation3_date_format=${ROTATION3_DATE_FORMAT:-"%m"}
 rotation3_date_result=${ROTATION3_DATE_RESULT:-"01"}
 
+# delete backups older than x days, 0 to disable
+delete_older_days=${DELETE_OLDER_DAYS:-0}
+
 log_prefix='date +%FT%T%z'
 xtrabackup=$(which xtrabackup mariabackup)
 

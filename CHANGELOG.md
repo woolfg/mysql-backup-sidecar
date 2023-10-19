@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.8] - 2023-10-19
+
+- Added env variable `DELETE_OLDER_DAYS` which allows to delete backups older than x days [#25](https://github.com/woolfg/mysql-backup-sidecar/issues/25)
+
 ## [0.3.7] - 2023-08-21
 
 - Pump to percona-xtrabackup-80=8.0.34-29 which supports MySQL 8.0.35 and higher
