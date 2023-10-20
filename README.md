@@ -4,44 +4,74 @@ This backup docker container creates incremental and compressed MySQL or MariaDB
 
 ## Features
 
-- non-blocking backup procedure (using XtraBackup/Mariabackup). 
+- non-blocking backup procedure (using XtraBackup/Mariabackup).
 - runs in a separated container
 - configurable cron schedule (e.g. every night, every second night, etc)
 - configurable backup cycles (incremental, full backups)
 - backup rotation (e.g. delete incremental backups after a full backup)
+- delete old backups automatically after some time to free up disk space
 - supports docker credentials and environment based password definitions
 
 ## Configuration
 
-The following environment variables are supported (incl. example values):
+### Basic Configuration
 
-- `CRON_SCHEDULE:` "5 3 * * *"
-- `INCREMENTAL:` "true"
-- `COMPRESS_THREADS:` 1
-- `BACKUP_DIR:` /backup
-- `DIR_DATE_PATTERN:` "%Y%m%d"
-- `FULL_BACKUP_DATE_FORMAT:` "%a"
-- `FULL_BACKUP_DATE_RESULT:` "Sun"
-- `BEFORE_BACKUP_SCRIPT:` "/backup/before_script.sh"
-- `AFTER_BACKUP_SCRIPT:` "/backup/after_script.sh"
-- `DATABASES_EXCLUDE:` "example example1.table1"
-- `ROTATION1_DAYS:` 6
-- `ROTATION1_DATE_FORMAT:` "%a"
-- `ROTATION1_DATE_RESULT:` "Sun"
-- `ROTATION2_DAYS:` 30
-- `ROTATION2_DATE_FORMAT:` "%d"
-- `ROTATION2_DATE_RESULT:` "<8"
-- `ROTATION3_DAYS:` 365
-- `ROTATION3_DATE_FORMAT:` "%m"
-- `ROTATION3_DATE_RESULT:` "01"
-- `DELETE_OLDER_DAYS:` 0
-- `MYSQL_USER:` root
-- `MYSQL_PASSWORD_FILE:` /run/secrets/db_password
-- `MYSQL_HOST:` db
+The following environment variables are supported (incl. example values) for configuring the backup system:
+
+| **Key**                | **Example Value**           | **Description**                                                                      |
+|------------------------|-----------------------------|--------------------------------------------------------------------------------------|
+| `CRON_SCHEDULE`        | "5 3 * * *"                 | Cron schedule for running the backup job (using the standard cron format).           |
+| `INCREMENTAL`          | "true"                      | Specifies whether incremental backup should be performed (`true` or `false`).        |
+| `COMPRESS_THREADS`     | 1                           | Number of threads used for compression by XtraBackup/Mariabackup.                    |
+| `BACKUP_DIR`           | "/backup"                   | Directory where backup files will be stored.                                         |
+| `DIR_DATE_PATTERN`     | "%Y%m%d"                    | Date pattern (command `date` is used) to be used for naming backup directories.      |
+| `FULL_BACKUP_DATE_FORMAT` | "%a"                     | Date format (command `date` is used) to be used for naming full backup files.        |  
+| `FULL_BACKUP_DATE_RESULT` | "Sun"                    | If the `date` output of the pattern `FULL_BACKUP_DATE_FORMAT` is equals to `FULL_BACKUP_DATE_RESULT` a full backup will be created. |
+| `BEFORE_BACKUP_SCRIPT` | "/backup/before_script.sh"  | Path to the script that will be executed before starting the backup.                  |
+| `AFTER_BACKUP_SCRIPT`  | "/backup/after_script.sh"   | Path to the script that will be executed after completing the backup.                 |
+| `DATABASES_EXCLUDE`    | "db1 db2.table1"            | Databases or tables to be excluded from the backup, separated by space.               |
+| `MYSQL_USER`           | "root"                      | MySQL database user for authentication.                                                |
+| `MYSQL_PASSWORD`       | "secret"                    | MySQL database password for authentication.                                            |
+| `MYSQL_PASSWORD_FILE`  | "/run/secrets/db_password"  | Path to the file containing the MySQL database password (when using e.g. docker secrets). |
+| `MYSQL_HOST`           | "db"                        | Hostname or IP address of the MySQL database server.                                   |
+
+### Backup Rotation Configuration
+
+To save disk space, backups should be rotated automatically. The default pattern is:
+
+- every day an incremental backup (`INCREMENTAL=true`)
+- every Sunday a full backup (`FULL_BACKUP_DATE_FORMAT="%a"`, `FULL_BACKUP_DATE_RESULT="Sun"`)
+- keep weekly backups for a month
+- keep monthly backups for a year
+- keep yearly backups after one year
+
+To change this behavior, you can use the following environment variables to define three rotation cycles.
+Every cycle is defined by a time range of days and a condition based on the Linux `date` command.
+The default evaluation used `equals` but can be changed to `greater than` or `less than` by using the operators `<` or `>` as shown in the examples below.
+
+| **Key**                | **Example Value**           | **Description**                                                                      |
+|------------------------|-----------------------------|--------------------------------------------------------------------------------------|
+| `ROTATION1_DAYS`       | 6                           | condition for backups older than specified number of days                            |
+| `ROTATION1_DATE_FORMAT`| "%a"                        | linux `date` pattern that is used in the condition                                   |
+| `ROTATION1_DATE_RESULT`| "Sun"                       | expected result of the `date` command to keep the backup                             |
+| `ROTATION2_DAYS`       | 30                          | condition for backups older than specified number of days                            |
+| `ROTATION2_DATE_FORMAT`| "%d"                        | linux `date` pattern that is used to evaluate the condition                          |
+| `ROTATION2_DATE_RESULT`| "<8"                        | expected result of the `date` command to keep the backup                             |
+| `ROTATION3_DAYS`       | 365                         | condition for backups older than specified number of days                            |
+| `ROTATION3_DATE_FORMAT`| "%m"                        | linux `date` pattern that is used to evaluate the condition                          |
+| `ROTATION3_DATE_RESULT`| "01"                        | expected result of the `date` command to keep the backup                             |
+| `DELETE_OLDER_DAYS`    | 0                           | delete all backups older than specified number of days (0 = disabled)                |
+
+The examples given above result in the following behavior:
+
+- For backups older than 6 days, only backups that were done on a Sunday are kept.
+- For backups older than 30 days, keep the backup that was done on a day of the first week of the month.
+- For backups older than 365 days, keep the backup that was done in January.
+- In this example yearly backups are kept forever.
 
 ## Example configuration
 
-You can find an example configuration in the `examples` folder. The available docker image versions can be found on [docker hub](https://hub.docker.com/r/woolfg/mysql-backup-sidecar/tags)
+You  can find an example configuration in the `examples` folder. The available docker image versions can be found on [docker hub](https://hub.docker.com/r/woolfg/my sql-backup-sidecar/tags)
 
 ## More Information
 
