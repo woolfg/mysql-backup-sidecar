@@ -12,9 +12,19 @@ This backup docker container creates incremental and compressed MySQL or MariaDB
 - delete old backups automatically after some time to free up disk space
 - supports docker credentials and environment based password definitions
 
-## Configuration
+## How to get started
 
-### Basic Configuration
+To have a running backup system it is sufficient to define the following environment variables:
+
+- `MYSQL_HOST`
+- `MYSQL_USER`
+- `MYSQL_PASSWORD`
+
+Use the example `docker-compose` file in the `examples` folder to get started.
+
+## Config
+
+### Configuration variables
 
 The following environment variables are supported (incl. example values) for configuring the backup system:
 
