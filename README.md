@@ -95,6 +95,7 @@ Let's assume we have a valid backup in your sidecar container and we want to res
 - Login to the sidecar and make sure, that the `data` dir of MySQL is empty by e.g. executing `rm -rf /var/lib/mysql/*`
 - Choose the backup you want to restore, e.g. `/backup/archive/20210606`
 - If you deal with compressed data, you will have to uncompress it first. `xtrabackup --decompress --target-dir=/backup/archive/20210606` does the job. You might need to install the required compression tool `qpress` first by executing `apt-get install qpress`.
+- You have to prepare the backup to be ready to be copied to the data directory. Use the `--prepare` and `--target-dir`. In case of incremental backups you have to prepare the full backup first and then apply all incremental backups sequentially. Have a look at the documentation for more details: ([Mariadbbackup](https://mariadb.com/kb/en/incremental-backup-and-restore-with-mariabackup/), [XtraBackup](https://docs.percona.com/percona-xtrabackup/8.0/prepare-incremental-backup.html))
 - The restoration process itself is just a copy process of the data in the backup directory to the empty data dir of MySQL. In the sidecar, as you have direct access to the shared volume, you can just copy the data `cp -r /backup/archive/20210606/* /var/lib/mysql`. You might have to `chown` the data to the owner of `/var/lib/mysql`.
 
 ## Upload Backup Data
