@@ -3,7 +3,7 @@
 incremental=${INCREMENTAL:-true}
 compress_threads=${COMPRESS_THREADS:-0}
 backup_dir="${BACKUP:-/backup}"
-dir_date_pattern=${DIR_DATE_PATTERN:-"%Y%m%d"}
+dir_date_pattern=${DIR_DATE_PATTERN:-"%Y%m%d-%H%M"}
 
 full_backup_date_format=${FULL_BACKUP_DATE_FORMAT:-"%a"}
 full_backup_date_result=${FULL_BACKUP_DATE_RESULT:-"Sun"}
