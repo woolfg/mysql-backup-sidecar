@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- When deleting backups older than x days, ensure at least one full backup is kept
+
 ## [0.3.8] - 2023-10-19
 
 - Added env variable `DELETE_OLDER_DAYS` which allows to delete backups older than x days [#25](https://github.com/woolfg/mysql-backup-sidecar/issues/25)

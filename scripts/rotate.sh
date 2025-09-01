@@ -101,11 +101,45 @@ done;
 # Delete backups older than x days
 if [ ${delete_older_days} -gt 0 ]; then
     echo "$(${log_prefix}) INFO: deleting backups older than ${delete_older_days} days"
+    
+    # Delete from archive directory
     for dir in $(find ${archive_dir} -maxdepth 1 -mindepth 1 -type d -mtime +${delete_older_days});
     do
         echo "$(${log_prefix}) INFO: ${dir} will be deleted, as it is older than ${delete_older_days} days"
         rm -rf "${dir}"
     done;
+    
+    # Delete from current directory - but ensure we keep at least one full backup newer than deletion threshold
+    delete_from_current=true
+    if [ "${incremental}" = true ]; then
+        recent_full_backup_found=false
+        
+        # Check all directories newer than delete_older_days threshold
+        for dir in $(find ${target_dir} -maxdepth 1 -mindepth 1 -type d ! -mtime +${delete_older_days});
+        do
+            # Check if this newer directory contains a full backup
+            if [ -f "${dir}/xtrabackup_checkpoints" ]; then
+                backup_type=$(grep "backup_type" "${dir}/xtrabackup_checkpoints" | cut -d ' ' -f 3)
+                if [ "${backup_type}" = "full-backuped" ]; then
+                    recent_full_backup_found=true
+                    break
+                fi
+            fi
+        done;
+        
+        if [ "${recent_full_backup_found}" = false ]; then
+            echo "$(${log_prefix}) WARNING: No full backup newer than ${delete_older_days} days found. Skipping deletion from current directory to preserve incremental backup chain."
+            delete_from_current=false
+        fi
+    fi
+    
+    if [ "${delete_from_current}" = true ]; then
+        for dir in $(find ${target_dir} -maxdepth 1 -mindepth 1 -type d -mtime +${delete_older_days});
+        do
+            echo "$(${log_prefix}) INFO: ${dir} will be deleted, as it is older than ${delete_older_days} days"
+            rm -rf "${dir}"
+        done;
+    fi
 fi
 
 echo "$(${log_prefix}) INFO: rotation finished";
