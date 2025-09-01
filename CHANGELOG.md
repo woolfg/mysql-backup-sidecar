@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Upgrade MySQL Docker Images to Debian 12 bookworm
 - When deleting backups older than x days, ensure at least one full backup is kept
 
 ## [0.3.8] - 2023-10-19

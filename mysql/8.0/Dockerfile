@@ -1,4 +1,4 @@
-FROM debian:10-slim
+FROM debian:12-slim
 
 LABEL maintainer="Wolfgang Gassler"
 LABEL description="XtraBackup based MySQL / MariaDB backup docker image to create incremental backups periodically"
@@ -15,7 +15,7 @@ RUN . /etc/os-release \
     && rm -f percona-release_latest.${VERSION_CODENAME}_all.deb \
     && percona-release enable-only tools release \
     && apt-get update \
-    && apt-get -y install percona-xtrabackup-80=8.0.34-29-1.buster
+    && apt-get -y install percona-xtrabackup-80=8.0.34-29-1.bookworm
 
 COPY scripts /scripts
 
