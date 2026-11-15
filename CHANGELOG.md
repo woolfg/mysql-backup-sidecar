@@ -6,21 +6,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Integrate pinned rclone and optional ZIP uploads into all maintained images, with a generic destination for multiple storage backends
-- Preserve GS settings, archive naming/layout and the legacy `node /gs-upload` hook while removing the need for a separate GS image; addresses [#28](https://github.com/woolfg/mysql-backup-sidecar/issues/28)
-- Verify GCS ZIP upload/download/database restore, generic local destinations and remote failures in CI
+## [0.4.0] - 2026-11-15
 
-- Preserve legacy hook commands such as `node /gs-upload`, alongside executable paths containing spaces
+### Added
 
-- Add MySQL 8.4 and 9.7 LTS images with matching XtraBackup series
-- Add MariaDB 10.11, 11.4, 11.8 and 12.3 LTS images; addresses [#26](https://github.com/woolfg/mysql-backup-sidecar/issues/26)
-- Detect `mariadb-backup`, retaining the legacy `mariabackup` fallback; support renamed `mariadb_backup_checkpoints` metadata for incremental backups and rotation
-- Require full/incremental and compressed/uncompressed restore verification before publishing each image; rebuild maintained variants weekly
-- Retire EOL variants from routine builds while retaining their Dockerfiles and existing published tags
-- Propagate backup and hook failures to prevent rotation; exclude failed checkpoints from incremental backup selection
-- Honor `BACKUP_DIR`, retaining `BACKUP` as a fallback, and pass backup arguments without shell evaluation
-- Upgrade legacy MySQL 8.0 images to Debian 12 bookworm; new MySQL LTS images use Ubuntu 24.04
-- When deleting backups older than x days, ensure at least one full backup is kept
+- MySQL 8.4 and 9.7 LTS images with matching XtraBackup series
+- MariaDB 10.11, 11.4, 11.8 and 12.3 LTS images with matching backup tools ([#26](https://github.com/woolfg/mysql-backup-sidecar/issues/26))
+- Pinned rclone and optional ZIP uploads in all maintained images, with a generic destination for multiple storage backends ([#28](https://github.com/woolfg/mysql-backup-sidecar/issues/28))
+- GCS compatibility settings, ZIP contents/naming, and legacy `node /gs-upload` hook support in the built-in uploader
+- CI checks for full/incremental, compressed/uncompressed GCS ZIP upload/download/database restores, generic local destinations, remote failures and rotation; weekly image rebuilds
+
+### Compatibility and upgrade notes
+
+- This release publishes only `mysql-8.4`, `mysql-9.7`, `mariadb-10.11`, `mariadb-11.4`, `mariadb-11.8` and `mariadb-12.3` image suffixes on `linux/amd64`. MySQL 8.0 and MariaDB 10.4/10.5/10.8/10.9 are retired from routine builds. Existing tags and legacy Dockerfiles remain available, but there are no `0.4.0` images for those EOL series. Upgrading a database series requires a separate database upgrade; keep the matching older tools for restoring older backups.
+- Backup, log-capture and hook failures now return nonzero status and prevent scheduled rotation. Before/after hooks must return zero on success; a failing before hook prevents the backup, and a failing after hook prevents upload and rotation.
+- `BACKUP_DIR` is now honored and takes precedence over the legacy `BACKUP` variable. Review the destination if either setting previously relied on the old fallback to `/backup`.
+- `DELETE_OLDER_DAYS` now applies to both `archive` and `current`. When incremental mode is enabled and no sufficiently recent full backup exists, deletion from `current` is skipped to preserve the backup chain. Review retention settings before upgrading.
+- Nonempty backup target directories are rejected. Move failed backup directories aside or choose a new directory name before retrying a backup; upload-only retries can use the completed local backup directly.
+- Backup credentials and exclusion arguments are passed literally instead of through shell evaluation. Hook commands support executable paths and whitespace-separated arguments; use wrapper scripts for shell expansion or globbing.
+- New MySQL LTS images use Ubuntu 24.04; the legacy MySQL 8.0 Dockerfiles use Debian 12 instead of Debian 10. Custom hooks depending on OS-specific tools or packages may need adjustment.
+- Setting `GS_BUCKET_NAME` now enables the built-in GCS uploader. Remove duplicate upload logic from custom hooks when enabling it. ZIPs are staged locally, so allow disk space for a complete archive; upload failures stop rotation, and missing uploads require manual retry in this initial implementation.
+- The separate `woolfg/mysql-backup-sidecar-gs` image repository is not released, deleted or retagged by this release. Existing uploaded ZIPs remain usable; migrating to the main image preserves `GS_*` settings, archive contents and object names.
+
+### Fixed
+
+- Recognize `mariadb-backup`, retain the `mariabackup` fallback, and support `mariadb_backup_checkpoints` for incremental selection and rotation
+- Exclude failed backup checkpoints from incremental backup selection
+- Preserve the full backup needed by incremental backups when applying retention
+- Preserve legacy hook commands while supporting executable paths containing spaces
 
 ## [0.3.8] - 2023-10-19
 
