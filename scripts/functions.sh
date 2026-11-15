@@ -1,5 +1,22 @@
 #!/bin/bash
 
+# Accept executable paths and legacy whitespace-separated commands such as
+# "node /gs-upload". Hook arguments remain literal; no shell evaluation is used.
+run_hook () {
+    local hook=$1
+    shift
+    if [ -f "${hook}" ]; then
+        "${hook}" "$@"
+    else
+        local -a hook_command
+        read -r -a hook_command <<< "${hook}"
+        if [ "${#hook_command[@]}" -eq 0 ]; then
+            return 127
+        fi
+        "${hook_command[@]}" "$@"
+    fi
+}
+
 get_lsn () {
     cat "$1" | grep to_lsn | cut -d ' ' -f 3
 }

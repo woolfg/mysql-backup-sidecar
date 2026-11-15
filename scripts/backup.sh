@@ -16,7 +16,7 @@ fi
 
 if [ ! -z "${before_backup_script}" ]; then
     echo "$(${log_prefix}) INFO: call before backup script"
-    "${before_backup_script}" "${current_dir}" || exit $?
+    run_hook "${before_backup_script}" "${current_dir}" || exit $?
 fi
 
 # output version information of xtrabackup
@@ -93,7 +93,7 @@ if [ ! -z "${after_backup_script}" ]; then
     else
         status="failed"
     fi
-    "${after_backup_script}" "${status}" "${output}" "${current_dir}"
+    run_hook "${after_backup_script}" "${status}" "${output}" "${current_dir}"
     hook_status=$?
     if [ "${backup_status}" -eq 0 ]; then
         backup_status=${hook_status}

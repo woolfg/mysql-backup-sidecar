@@ -164,6 +164,41 @@ exit {status}
         self.assertNotEqual(self.run_backup(rotate=True).returncode, 0)
         self.assertFalse((self.root / "rotation-ran").exists())
 
+    def legacy_node_hook(self):
+        node = self.bin / "node"
+        node.write_text('#!/bin/bash\nprintf "%s\\n" "$@" > "$HOOK_ARGS_FILE"\nexit "${HOOK_EXIT:-0}"\n')
+        node.chmod(0o755)
+        self.env["HOOK_ARGS_FILE"] = str(self.root / "hook-args")
+
+    def test_legacy_google_storage_after_hook_command(self):
+        self.tool("xtrabackup")
+        self.legacy_node_hook()
+        self.env["AFTER_BACKUP_SCRIPT"] = "node /gs-upload"
+        result = self.run_backup(rotate=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        args = (self.root / "hook-args").read_text().splitlines()
+        self.assertEqual(args[0:2], ["/gs-upload", "succeed"])
+        self.assertIn("completed OK!", args[2])
+        self.assertEqual(args[3], str(self.root / "backups/current/test"))
+        self.assertTrue((self.root / "rotation-ran").exists())
+
+    def test_legacy_hook_failure_prevents_rotation(self):
+        self.tool("xtrabackup")
+        self.legacy_node_hook()
+        self.env.update(AFTER_BACKUP_SCRIPT="node /gs-upload", HOOK_EXIT="37")
+        result = self.run_backup(rotate=True)
+        self.assertEqual(result.returncode, 37, result.stderr)
+        self.assertFalse((self.root / "rotation-ran").exists())
+
+    def test_legacy_before_hook_command(self):
+        self.tool("xtrabackup")
+        self.legacy_node_hook()
+        self.env["BEFORE_BACKUP_SCRIPT"] = "node /before-script"
+        result = self.run_backup()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        args = (self.root / "hook-args").read_text().splitlines()
+        self.assertEqual(args, ["/before-script", str(self.root / "backups/current/test")])
+
     def test_existing_backup_is_not_overwritten(self):
         self.tool("xtrabackup")
         self.assertEqual(self.run_backup().returncode, 0)

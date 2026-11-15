@@ -154,6 +154,8 @@ A failed backup returns a nonzero exit status, reports `failed` to the after hoo
 
 You can run scripts right before and after backup routines. Just pass `BEFORE_BACKUP_SCRIPT` and/or `AFTER_BACKUP_SCRIPT` environment variables with the files locations.
 
+Hooks accept executable paths (including paths containing spaces) and legacy commands with whitespace-separated arguments such as `node /gs-upload`. For commands needing shell quoting or pipelines, use a wrapper script.
+
 The before script receives as only one argument the backup's target directory while the after script receives three: the status `succeed` or `failed`, the raw output and the backup's target directory.
 
 ## Credits

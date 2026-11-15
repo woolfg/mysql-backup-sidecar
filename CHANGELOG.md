@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Preserve legacy hook commands such as `node /gs-upload`, alongside executable paths containing spaces
+
 - Add MySQL 8.4 and 9.7 LTS images with matching XtraBackup series
 - Add MariaDB 10.11, 11.4, 11.8 and 12.3 LTS images; addresses [#26](https://github.com/woolfg/mysql-backup-sidecar/issues/26)
 - Detect `mariadb-backup`, retaining the legacy `mariabackup` fallback; support renamed `mariadb_backup_checkpoints` metadata for incremental backups and rotation
