@@ -2,94 +2,108 @@ name: DockerHub
 on:
   repository_dispatch:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["release"]
-    types:
-      - completed
+  schedule:
+    - cron: "17 4 * * 1"
   push:
-    branches:
-      - main
-    tags:
-      - "v*.*.*"
+    branches: [main]
+    tags: ["v*.*.*"]
   pull_request:
-    branches:
-      - main
+    branches: [main]
+
+permissions:
+  contents: read
 
 env:
   IMAGE_NAME: woolfg/mysql-backup-sidecar
-  DOCKER_PLATFORMS: linux/amd64
-  DOCKERFILE: mysql/8.0/Dockerfile
 
 jobs:
-  build:
+  unit:
     runs-on: ubuntu-latest
-    # Don't run on forks
-    if: github.repository_owner == 'woolfg' &&
-      github.actor != 'dependabot[bot]' &&
-      ( github.event_name != 'pull_request' || github.event.pull_request.head.repo.owner.login == github.event.pull_request.base.repo.owner.login )
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shell syntax and backup regression tests
+        run: |
+          for script in scripts/*.sh tests/integration.sh; do bash -n "$script"; done
+          python3 tests/test_backup.py
+
+  build:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         include:
-          - dockerfile: ./mysql/8.0/Dockerfile
-            suffix: -mysql-8.0
-          - dockerfile: ./mariadb/10.9/Dockerfile
-            suffix: -mariadb-10.9
-          - dockerfile: ./mariadb/10.8/Dockerfile
-            suffix: -mariadb-10.8
-          - dockerfile: ./mariadb/10.5/Dockerfile
-            suffix: -mariadb-10.5
-          - dockerfile: ./mariadb/10.4/Dockerfile
-            suffix: -mariadb-10.4
+          - family: mysql
+            version: "8.4"
+          - family: mysql
+            version: "9.7"
+          - family: mariadb
+            version: "10.11"
+          - family: mariadb
+            version: "11.4"
+          - family: mariadb
+            version: "11.8"
+          - family: mariadb
+            version: "12.3"
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v5
         with:
-          # list of Docker images to use as base name for tags
-          images: |
-            ${{ env.IMAGE_NAME }}
-          flavor: |
-            suffix=${{ matrix.suffix }}
-          # generate Docker tags based on the following events/attributes
+          images: ${{ env.IMAGE_NAME }}
+          flavor: suffix=-${{ matrix.family }}-${{ matrix.version }}
           tags: |
-            type=schedule
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=sha
-            # set latest tag for default branch
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image for testing
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.family }}/${{ matrix.version }}/Dockerfile
+          platforms: linux/amd64
+          pull: true
+          no-cache: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+          load: true
+          tags: sidecar-test:${{ matrix.family }}-${{ matrix.version }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Verify full, incremental and compressed restores
+        run: bash tests/integration.sh '${{ matrix.family }}' '${{ matrix.version }}' 'sidecar-test:${{ matrix.family }}-${{ matrix.version }}'
 
       - name: Login to DockerHub
-        uses: docker/login-action@v2
+        if: github.event_name != 'pull_request' && github.repository == 'woolfg/mysql-backup-sidecar'
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Push Image
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          file: ${{ matrix.dockerfile }}
-          platforms: ${{ env.DOCKER_PLATFORMS }}
-          push: ${{ github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      # Tag the exact image that passed restore verification, then publish it.
+      - name: Push verified image
+        if: github.event_name != 'pull_request' && github.repository == 'woolfg/mysql-backup-sidecar'
+        env:
+          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
+          TEST_IMAGE: sidecar-test:${{ matrix.family }}-${{ matrix.version }}
+        run: |
+          while IFS= read -r tag; do
+            docker tag "$TEST_IMAGE" "$tag"
+            docker push "$tag"
+          done <<< "$IMAGE_TAGS"
 
       - name: Update DockerHub description
-        uses: peter-evans/dockerhub-description@v3
+        if: github.event_name != 'pull_request' && github.repository == 'woolfg/mysql-backup-sidecar' && matrix.family == 'mysql' && matrix.version == '8.4'
+        uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}

@@ -1,0 +1,7 @@
+*
+!scripts/
+!scripts/**
+!mysql/
+!mysql/**
+!mariadb/
+!mariadb/**

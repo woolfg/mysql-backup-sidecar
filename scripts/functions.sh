@@ -1,11 +1,46 @@
 #!/bin/bash
 
+# Accept executable paths and legacy whitespace-separated commands such as
+# "node /gs-upload". Hook arguments remain literal; no shell evaluation is used.
+run_hook () {
+    local hook=$1
+    shift
+    if [ -f "${hook}" ]; then
+        "${hook}" "$@"
+    else
+        local -a hook_command
+        read -r -a hook_command <<< "${hook}"
+        if [ "${#hook_command[@]}" -eq 0 ]; then
+            return 127
+        fi
+        "${hook_command[@]}" "$@"
+    fi
+}
+
 get_lsn () {
     cat "$1" | grep to_lsn | cut -d ' ' -f 3
 }
 
+checkpoint_file () {
+    local name
+    for name in mariadb_backup_checkpoints xtrabackup_checkpoints; do
+        if [ -f "$1/${name}" ]; then
+            printf '%s\n' "$1/${name}"
+            return 0
+        fi
+    done
+    return 1
+}
+
 backups_by_type () {
-    fgrep -l "backup_type = $1" ${target_dir}/*/xtrabackup_checkpoints
+    local dir checkpoint
+    for dir in "${target_dir}"/*; do
+        [ -d "${dir}" ] || continue
+        checkpoint=$(checkpoint_file "${dir}") || continue
+        if grep -qF "backup_type = $1" "${checkpoint}"; then
+            printf '%s\n' "${checkpoint}"
+        fi
+    done
 }
 
 full_backups () {

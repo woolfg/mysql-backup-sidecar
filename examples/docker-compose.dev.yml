@@ -1,7 +1,8 @@
-version: "3.7"
 services: 
   backup:
-    build: ../
+    build:
+      context: ../
+      dockerfile: ${DB_FAMILY:-mysql}/${DB_VERSION:-8.4}/Dockerfile
     environment:
       CRON_SCHEDULE: "* * * * *"
     volumes:
