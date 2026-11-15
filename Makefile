@@ -46,8 +46,8 @@ rebuild-mariadb: ## build maintained MariaDB LTS images without cache
 	done
 
 .PHONY: test-unit test-restore
-test-unit: ## test backup tool discovery and failure handling without Docker
-	python3 tests/test_backup.py
+test-unit: ## test backup/upload behavior without Docker (requires Python 3 and zip)
+	python3 -m unittest discover -s tests -p 'test_*.py'
 
 test-restore: ## build and verify full/incremental restores (DB_FAMILY=mysql DB_VERSION=8.4)
 	bash tests/integration.sh $(DB_FAMILY) $(DB_VERSION)

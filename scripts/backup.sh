@@ -93,11 +93,21 @@ if [ ! -z "${after_backup_script}" ]; then
     else
         status="failed"
     fi
-    run_hook "${after_backup_script}" "${status}" "${output}" "${current_dir}"
-    hook_status=$?
+    if upload_is_configured && is_builtin_upload_hook "${after_backup_script}"; then
+        # The built-in module replaces the old Node.js hook and runs once below.
+        hook_status=0
+    else
+        run_hook "${after_backup_script}" "${status}" "${output}" "${current_dir}"
+        hook_status=$?
+    fi
     if [ "${backup_status}" -eq 0 ]; then
         backup_status=${hook_status}
     fi
+fi
+
+if [ "${backup_status}" -eq 0 ] && upload_is_configured; then
+    bash "$(dirname "$0")/../modules/upload.sh" succeed "" "${current_dir}"
+    backup_status=$?
 fi
 
 if [ "${backup_status}" -ne 0 ]; then

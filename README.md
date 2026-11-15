@@ -141,14 +141,58 @@ make test-restore DB_FAMILY=mysql DB_VERSION=8.4
 make test-restore DB_FAMILY=mariadb DB_VERSION=11.8
 ```
 
-The restore test builds the selected sidecar, creates isolated Docker containers and named volumes, inserts data, takes full and incremental backups, prepares and restores each into a fresh database, and checks the restored rows. It repeats with compression enabled and cleans up only its own resources. MariaDB tests also check an Aria table. CI runs this for all maintained variants before publishing each image.
+The restore test builds the selected sidecar, creates isolated Docker containers and named volumes, inserts data, takes full and incremental backups, uploads ZIPs to a GCS emulator with the real rclone backend, downloads and extracts them, then prepares and restores each into a fresh database and checks the restored rows. It repeats with compression enabled and cleans up only its own resources. MariaDB tests also check an Aria table. It also checks a generic local destination and real remote upload failures. CI runs this for all maintained variants before publishing each image. Unit tests need Python 3 and `zip`.
 
 A failed backup returns a nonzero exit status, reports `failed` to the after hook and prevents the scheduled rotation. Failed backup checkpoints are renamed with a `.failed` suffix so they cannot be selected as an incremental base. Failed directories remain for diagnosis; move them aside before retrying with the same directory name. A failing before or after hook also prevents rotation.
 
 ## Upload Backup Data
 
-- If you want to upload your backups to an external storage we recommend the very flexible docker container https://github.com/lagun4ik/docker-backup
-- For uploading backups to Google Cloud Storage automatically, you can use my sister project [woolfg/mysql-backup-sidecar-gs](https://github.com/woolfg/mysql-backup-sidecar-gs).
+The maintained images include rclone and an optional ZIP upload module. Set `UPLOAD_DESTINATION` to a configured rclone destination, or set `GS_BUCKET_NAME` to use the existing Google Cloud Storage settings. Uploads are disabled when both are unset.
+
+After a successful backup and any custom after hook, the module creates a temporary ZIP and uploads it with `rclone copyto`. ZIP entries are the contents of the backup directory, without a containing folder, preserving the format used by [mysql-backup-sidecar-gs](https://github.com/woolfg/mysql-backup-sidecar-gs). Objects retain the naming pattern `PROJECT/YYYY-MM-DDTHH:mm:ss.sssZ_PROJECT.zip`.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `UPLOAD_DESTINATION` | unset | Destination root, such as `archive:my-bucket/backups`, or a local mounted path. Overrides `GS_BUCKET_NAME`. |
+| `UPLOAD_PROJECT_NAME` | `GS_PROJECT_NAME`, then container hostname | Project label used as the object prefix and filename suffix. |
+| `UPLOAD_FULLBACKUPS_ONLY` | `GS_FULLBACKUPS_ONLY`, then `false` | Set to `true` to skip incremental uploads. Both checkpoint filename conventions are supported. |
+| `UPLOAD_TMP_DIR` | `TMPDIR`, then `/tmp` | Temporary ZIP staging directory. Must be outside the backup directory being archived and have enough free space for the complete ZIP. |
+
+Configure rclone with its normal environment variables or a config file selected by `RCLONE_CONFIG`. For example, an S3 destination could use:
+
+```yaml
+environment:
+  UPLOAD_DESTINATION: "archive:my-bucket/backups"
+  UPLOAD_PROJECT_NAME: "myproject"
+  RCLONE_CONFIG_ARCHIVE_TYPE: "s3"
+  RCLONE_CONFIG_ARCHIVE_PROVIDER: "AWS"
+  RCLONE_CONFIG_ARCHIVE_REGION: "eu-central-1"
+  RCLONE_CONFIG_ARCHIVE_ENV_AUTH: "true"
+```
+
+Supply credentials using the selected backend's supported authentication mechanism. See [rclone configuration](https://rclone.org/docs/#environment-variables) and [supported backends](https://rclone.org/overview/). The same uploader accepts other configured rclone remotes; CI verifies GCS against an emulator and the local backend. Live cloud IAM and other providers need validation in your environment.
+
+Existing GCS deployments can switch to the matching main sidecar image and keep:
+
+```yaml
+environment:
+  GS_BUCKET_NAME: "existing-bucket"
+  GS_PROJECT_NAME: "myproject"
+  GS_KEY_FILE: "/run/secrets/gs_key_file"
+  GS_FULLBACKUPS_ONLY: "true"
+```
+
+The module maps these settings to rclone's GCS backend. The bucket must already exist. If `GS_KEY_FILE` is omitted, rclone uses runtime Application Default Credentials. The module uses bucket IAM policies and disables destination comparison and bucket creation checks for uploads. The JSON key is still mounted at the existing secret path. `GS_PROJECT_NAME` is an archive label, not a GCP project identifier.
+
+The old `AFTER_BACKUP_SCRIPT: node /gs-upload` setting can be removed. When upload settings are configured, that legacy command is recognized and replaced by the built-in module, so Node.js is unnecessary and each backup is uploaded once. Custom after hooks continue to receive the backup status, output and directory before the built-in upload; a failing custom hook prevents upload and rotation.
+
+Rclone retries the transfer while the staged ZIP is available. After success or failure, the temporary ZIP is deleted. An upload failure returns a nonzero status and prevents that run's rotation; the original local backup remains available. To retry it manually, run `bash /modules/upload.sh succeed "" /backup/current/BACKUP_DIRECTORY` with the same upload environment. There is no persistent upload queue in this initial implementation.
+
+When uploading incremental backups, keep the matching full ZIP too. Retry missing uploads before relying on later incremental ZIPs; this implementation does not reconcile missing remote archives automatically.
+
+Remote retention remains independent of local rotation; keep bucket lifecycle policies or manage it explicitly. Uploads use `copyto`, preserving unrelated remote objects. To restore an uploaded backup, download and extract its ZIP into an empty working directory, then follow the preparation and copy-back instructions above. Existing ZIP backups remain usable.
+
+The rclone version and release checksums are maintained once in `build/install-upload-tools.sh`, shared by all maintained image variants. Legacy EOL Dockerfiles remain outside this upload integration.
 
 ## After and Before scripts
 

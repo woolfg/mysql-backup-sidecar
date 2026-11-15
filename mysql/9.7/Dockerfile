@@ -17,7 +17,11 @@ RUN apt-get update \
     && rm -f /tmp/percona-release.deb \
     && rm -rf /var/lib/apt/lists/*
 
+COPY build/install-upload-tools.sh /tmp/install-upload-tools.sh
+RUN bash /tmp/install-upload-tools.sh && rm /tmp/install-upload-tools.sh
+
 COPY scripts /scripts
+COPY modules /modules
 
 VOLUME /backup /var/lib/mysql
 WORKDIR /backup

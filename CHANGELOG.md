@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Integrate pinned rclone and optional ZIP uploads into all maintained images, with a generic destination for multiple storage backends
+- Preserve GS settings, archive naming/layout and the legacy `node /gs-upload` hook while removing the need for a separate GS image; addresses [#28](https://github.com/woolfg/mysql-backup-sidecar/issues/28)
+- Verify GCS ZIP upload/download/database restore, generic local destinations and remote failures in CI
+
 - Preserve legacy hook commands such as `node /gs-upload`, alongside executable paths containing spaces
 
 - Add MySQL 8.4 and 9.7 LTS images with matching XtraBackup series
