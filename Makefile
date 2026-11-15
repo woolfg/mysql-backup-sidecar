@@ -19,34 +19,51 @@ build: build-mysql build-mariadb ## build docker image
 .PHONY: rebuild
 rebuild: rebuild-mysql rebuild-mariadb ## build docker image without cache
 
-.PHONY: build-mysql
-build-mysql: ## build docker image
-	docker build -t "$(IMAGE_NAME):$(VERSION_TAG)-mysql-8.0" -f mysql/8.0/Dockerfile .
+MYSQL_VERSIONS := 8.4 9.7
+MARIADB_VERSIONS := 10.11 11.4 11.8 12.3
+DB_FAMILY ?= mysql
+DB_VERSION ?= 8.4
 
-.PHONY: build-mariadb
-build-mariadb: ## build docker image
-	docker build -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-10.4" -f mariadb/10.4/Dockerfile .
-	docker build -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-10.5" -f mariadb/10.5/Dockerfile .
-	docker build -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-10.8" -f mariadb/10.8/Dockerfile .
-	docker build -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-10.9" -f mariadb/10.9/Dockerfile .
+.PHONY: build-mysql rebuild-mysql build-mariadb rebuild-mariadb
+build-mysql: ## build maintained MySQL LTS images
+	@set -e; for version in $(MYSQL_VERSIONS); do \
+		docker build -t "$(IMAGE_NAME):$(VERSION_TAG)-mysql-$$version" -f mysql/$$version/Dockerfile .; \
+	done
 
-.PHONY: rebuild-mariadb
-rebuild-mariadb: ## build docker image without cache
-	docker build --no-cache -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-10.4" -f mariadb/10.4/Dockerfile .
-	docker build --no-cache -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-10.5" -f mariadb/10.5/Dockerfile .
-	docker build --no-cache -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-10.8" -f mariadb/10.8/Dockerfile .
-	docker build --no-cache -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-10.9" -f mariadb/10.9/Dockerfile .
+rebuild-mysql: ## build maintained MySQL LTS images without cache
+	@set -e; for version in $(MYSQL_VERSIONS); do \
+		docker build --no-cache --pull -t "$(IMAGE_NAME):$(VERSION_TAG)-mysql-$$version" -f mysql/$$version/Dockerfile .; \
+	done
+
+build-mariadb: ## build maintained MariaDB LTS images
+	@set -e; for version in $(MARIADB_VERSIONS); do \
+		docker build -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-$$version" -f mariadb/$$version/Dockerfile .; \
+	done
+
+rebuild-mariadb: ## build maintained MariaDB LTS images without cache
+	@set -e; for version in $(MARIADB_VERSIONS); do \
+		docker build --no-cache --pull -t "$(IMAGE_NAME):$(VERSION_TAG)-mariadb-$$version" -f mariadb/$$version/Dockerfile .; \
+	done
+
+.PHONY: test-unit test-restore
+test-unit: ## test backup tool discovery and failure handling without Docker
+	python3 tests/test_backup.py
+
+test-restore: ## build and verify full/incremental restores (DB_FAMILY=mysql DB_VERSION=8.4)
+	bash tests/integration.sh $(DB_FAMILY) $(DB_VERSION)
 
 .PHONY: runmysql
 runmysql: ## run the example docker compose stack on MySQL
-	VERSION_TAG=$(VERSION_TAG)-mysql-8.0 \
-	DB_IMAGE=mysql:8.0.34 \
+	DB_FAMILY=mysql DB_VERSION=8.4 \
+	VERSION_TAG=$(VERSION_TAG)-mysql-8.4 \
+	DB_IMAGE=mysql:8.4 \
 	$(DOCKER_COMPOSE_DEV) up
 
 .PHONY: runmariadb
 runmariadb: ## run the example docker compose stack on MariaDB
-	VERSION_TAG=$(VERSION_TAG)-mariadb-10.5 \
-	DB_IMAGE=mariadb:10.5 \
+	DB_FAMILY=mariadb DB_VERSION=11.8 \
+	VERSION_TAG=$(VERSION_TAG)-mariadb-11.8 \
+	DB_IMAGE=mariadb:11.8 \
 	$(DOCKER_COMPOSE_DEV) up
 
 .PHONY: clean

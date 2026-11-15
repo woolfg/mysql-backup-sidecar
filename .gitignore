@@ -1,0 +1,13 @@
+# Generated backup data from the local example stack.
+/examples/backups/
+
+# Local Python environments and caches.
+/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local environment configuration.
+.env
+.env.local
+.env.*.local

@@ -2,7 +2,7 @@
 
 incremental=${INCREMENTAL:-true}
 compress_threads=${COMPRESS_THREADS:-0}
-backup_dir="${BACKUP:-/backup}"
+backup_dir="${BACKUP_DIR:-${BACKUP:-/backup}}"
 dir_date_pattern=${DIR_DATE_PATTERN:-"%Y%m%d"}
 
 full_backup_date_format=${FULL_BACKUP_DATE_FORMAT:-"%a"}
@@ -37,10 +37,19 @@ rotation3_date_result=${ROTATION3_DATE_RESULT:-"01"}
 delete_older_days=${DELETE_OLDER_DAYS:-0}
 
 log_prefix='date +%FT%T%z'
-xtrabackup=$(which xtrabackup mariabackup)
+xtrabackup=
+for backup_tool in xtrabackup mariadb-backup mariabackup; do
+    if command -v "${backup_tool}" >/dev/null 2>&1; then
+        xtrabackup=$(command -v "${backup_tool}")
+        break
+    fi
+done
+if [ -z "${xtrabackup}" ]; then
+    >&2 echo "$(${log_prefix}) ERROR: No backup tool found (xtrabackup, mariadb-backup or mariabackup)"
+    exit 1
+fi
 
 target_dir="${backup_dir}/current"
 archive_dir="${backup_dir}/archive"
 
-mkdir -p ${target_dir}
-mkdir -p ${archive_dir}
+mkdir -p "${target_dir}" "${archive_dir}" || exit 1

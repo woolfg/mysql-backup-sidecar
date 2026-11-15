@@ -4,8 +4,26 @@ get_lsn () {
     cat "$1" | grep to_lsn | cut -d ' ' -f 3
 }
 
+checkpoint_file () {
+    local name
+    for name in mariadb_backup_checkpoints xtrabackup_checkpoints; do
+        if [ -f "$1/${name}" ]; then
+            printf '%s\n' "$1/${name}"
+            return 0
+        fi
+    done
+    return 1
+}
+
 backups_by_type () {
-    fgrep -l "backup_type = $1" ${target_dir}/*/xtrabackup_checkpoints
+    local dir checkpoint
+    for dir in "${target_dir}"/*; do
+        [ -d "${dir}" ] || continue
+        checkpoint=$(checkpoint_file "${dir}") || continue
+        if grep -qF "backup_type = $1" "${checkpoint}"; then
+            printf '%s\n' "${checkpoint}"
+        fi
+    done
 }
 
 full_backups () {

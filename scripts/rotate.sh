@@ -118,8 +118,8 @@ if [ ${delete_older_days} -gt 0 ]; then
         for dir in $(find ${target_dir} -maxdepth 1 -mindepth 1 -type d ! -mtime +${delete_older_days});
         do
             # Check if this newer directory contains a full backup
-            if [ -f "${dir}/xtrabackup_checkpoints" ]; then
-                backup_type=$(grep "backup_type" "${dir}/xtrabackup_checkpoints" | cut -d ' ' -f 3)
+            if checkpoint=$(checkpoint_file "${dir}"); then
+                backup_type=$(grep "backup_type" "${checkpoint}" | cut -d ' ' -f 3)
                 if [ "${backup_type}" = "full-backuped" ]; then
                     recent_full_backup_found=true
                     break
