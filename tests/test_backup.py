@@ -23,7 +23,7 @@ class BackupTest(unittest.TestCase):
                         INCREMENTAL="false", DIR_DATE_PATTERN="test", COMPRESS_THREADS="1",
                         MYSQL_PASSWORD='literal $(touch SHOULD_NOT_EXIST) `whoami` " password',
                         DATABASES_EXCLUDE="db1 db2.table1")
-        for key in ("BEFORE_BACKUP_SCRIPT", "AFTER_BACKUP_SCRIPT", "MYSQL_PASSWORD_FILE"):
+        for key in ("BEFORE_BACKUP_SCRIPT", "AFTER_BACKUP_SCRIPT", "MYSQL_PASSWORD_FILE", "UPLOAD_DESTINATION", "GS_BUCKET_NAME"):
             self.env.pop(key, None)
         self.env["ARGS_FILE"] = str(self.root / "args")
 

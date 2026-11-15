@@ -5,3 +5,7 @@
 !mysql/**
 !mariadb/
 !mariadb/**
+!build/
+!build/**
+!modules/
+!modules/**

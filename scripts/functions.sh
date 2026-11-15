@@ -21,6 +21,18 @@ get_lsn () {
     cat "$1" | grep to_lsn | cut -d ' ' -f 3
 }
 
+upload_is_configured () {
+    [ -n "${UPLOAD_DESTINATION:-}${GS_BUCKET_NAME:-}" ]
+}
+
+is_builtin_upload_hook () {
+    case "$1" in
+        'node /gs-upload'|'node /gs-upload/index.js'|'node /scripts/gs-upload'|'node /scripts/gs-upload/index.js'|'/modules/upload.sh')
+            return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 checkpoint_file () {
     local name
     for name in mariadb_backup_checkpoints xtrabackup_checkpoints; do

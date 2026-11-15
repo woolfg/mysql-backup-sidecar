@@ -21,10 +21,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install unit test dependencies
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends zip
       - name: Shell syntax and backup regression tests
         run: |
-          for script in scripts/*.sh tests/integration.sh; do bash -n "$script"; done
-          python3 tests/test_backup.py
+          for script in scripts/*.sh modules/*.sh build/*.sh tests/integration.sh; do bash -n "$script"; done
+          python3 -m unittest discover -s tests -p 'test_*.py'
 
   build:
     needs: unit
@@ -79,7 +81,7 @@ jobs:
           tags: sidecar-test:${{ matrix.family }}-${{ matrix.version }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Verify full, incremental and compressed restores
+      - name: Verify ZIP uploads, downloads and database restores
         run: bash tests/integration.sh '${{ matrix.family }}' '${{ matrix.version }}' 'sidecar-test:${{ matrix.family }}-${{ matrix.version }}'
 
       - name: Login to DockerHub

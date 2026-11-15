@@ -35,6 +35,39 @@ cleanup() {
 trap cleanup EXIT
 docker network create "${prefix}" >/dev/null
 
+# Exercise the real rclone GCS backend without live cloud credentials.
+gcs="${prefix}-gcs"
+containers+=("${gcs}")
+docker run -d --name "${gcs}" --network "${prefix}" \
+    fsouza/fake-gcs-server:1.56.1 -scheme http -port 4443 \
+    -external-url "http://${gcs}:4443" -public-host "${gcs}:4443" >/dev/null
+docker run --rm --network "${prefix}" "${sidecar}" \
+    curl -fsS --retry 20 --retry-delay 1 --retry-connrefused \
+    -X POST -H 'Content-Type: application/json' -d '{"name":"sidecar-backups"}' \
+    "http://${gcs}:4443/storage/v1/b?project=sidecar-integration"
+
+# Verify a backend-neutral destination and a real remote upload failure too.
+docker run --rm --network "${prefix}" \
+    -e RCLONE_CONFIG_GCS_TYPE=googlecloudstorage -e RCLONE_CONFIG_GCS_ANONYMOUS=true \
+    -e RCLONE_CONFIG_GCS_ENDPOINT="http://${gcs}:4443/storage/v1/" \
+    -e RCLONE_CONFIG_GCS_NO_CHECK_BUCKET=true -e RCLONE_CONFIG_GCS_BUCKET_POLICY_ONLY=true \
+    -e RCLONE_RETRIES=1 -e RCLONE_LOW_LEVEL_RETRIES=1 "${sidecar}" bash -euc '
+        mkdir -p /tmp/source
+        printf "backup_type = full-backuped\n" > /tmp/source/xtrabackup_checkpoints
+        printf "round trip data" > /tmp/source/data.ibd
+        UPLOAD_DESTINATION=/tmp/remote UPLOAD_PROJECT_NAME=generic /modules/upload.sh succeed "" /tmp/source
+        rclone copy /tmp/remote/generic /tmp/download
+        archives=(/tmp/download/*.zip)
+        [ "${#archives[@]}" -eq 1 ]
+        unzip -q "${archives[0]}" -d /tmp/extracted
+        cmp /tmp/source/data.ibd /tmp/extracted/data.ibd
+        if UPLOAD_DESTINATION=gcs:missing-bucket /modules/upload.sh succeed "" /tmp/source; then
+            echo "ERROR: uploading to a missing bucket unexpectedly succeeded" >&2
+            exit 1
+        fi
+    '
+echo "PASS: ${family} ${version}, generic destination and remote failure"
+
 sql() {
     docker exec -e MYSQL_PWD="${password}" "$1" "${client}" -h127.0.0.1 -uroot -Nse "$2"
 }
@@ -52,7 +85,8 @@ for compression in 0 1; do
     source_db="${prefix}-${compression}-source"
     source_data="${source_db}-data"
     backup_data="${source_db}-backups"
-    for volume in "${source_data}" "${backup_data}"; do
+    downloaded_data="${source_db}-downloaded"
+    for volume in "${source_data}" "${backup_data}" "${downloaded_data}"; do
         volumes+=("${volume}")
         docker volume create "${volume}" >/dev/null
     done
@@ -75,6 +109,9 @@ for compression in 0 1; do
             -e MYSQL_HOST="${source_db}" -e MYSQL_USER=root -e MYSQL_PASSWORD="${password}" \
             -e COMPRESS_THREADS="${compression}" -e INCREMENTAL="$1" \
             -e DIR_DATE_PATTERN="$2" -e FULL_BACKUP_DATE_RESULT=never \
+            -e GS_BUCKET_NAME=sidecar-backups -e GS_PROJECT_NAME="${compression}-$2" \
+            -e RCLONE_CONFIG_SIDECAR_GCS_ANONYMOUS=true \
+            -e RCLONE_CONFIG_SIDECAR_GCS_ENDPOINT="http://${gcs}:4443/storage/v1/" \
             "${sidecar}" /scripts/backup.sh
     }
     backup false full
@@ -94,17 +131,35 @@ for compression in 0 1; do
         '
     fi
 
+    # Download the uploaded ZIPs, and restore solely from their extracted contents.
+    docker run --rm --network "${prefix}" -v "${downloaded_data}:/download" \
+        -e RCLONE_CONFIG_GCS_TYPE=googlecloudstorage -e RCLONE_CONFIG_GCS_ANONYMOUS=true \
+        -e RCLONE_CONFIG_GCS_ENDPOINT="http://${gcs}:4443/storage/v1/" -e COMPRESSION="${compression}" \
+        "${sidecar}" bash -euc '
+            shopt -s nullglob
+            for kind in full incremental; do
+                dir="/download/$kind"
+                mkdir -p "$dir"
+                rclone copy "gcs:sidecar-backups/${COMPRESSION}-$kind" "$dir"
+                archives=("$dir"/*.zip)
+                [ "${#archives[@]}" -eq 1 ]
+                unzip -q "${archives[0]}" -d "$dir"
+                rm "${archives[0]}"
+            done
+        '
+    echo "PASS: ${family} ${version}, compression=${compression}, GCS ZIP round trip"
+
     for restore in full incremental; do
         restore_data="${source_db}-${restore}-restored"
         volumes+=("${restore_data}")
         docker volume create "${restore_data}" >/dev/null
         # Prepare independent copies, because preparation modifies the backup.
-        docker run --rm -v "${backup_data}:/backup:ro" -v "${restore_data}:/restore" \
+        docker run --rm -v "${downloaded_data}:/backup:ro" -v "${restore_data}:/restore" \
             -e BACKUP_TOOL="${tool}" -e RESTORE_KIND="${restore}" -e COMPRESSION="${compression}" \
             "${sidecar}" bash -euc '
                 mkdir -p /tmp/full /tmp/incremental
-                cp -a /backup/current/full/. /tmp/full/
-                cp -a /backup/current/incremental/. /tmp/incremental/
+                cp -a /backup/full/. /tmp/full/
+                cp -a /backup/incremental/. /tmp/incremental/
                 if [ "$COMPRESSION" -gt 0 ]; then
                     "$BACKUP_TOOL" --decompress --remove-original --target-dir=/tmp/full
                     "$BACKUP_TOOL" --decompress --remove-original --target-dir=/tmp/incremental
